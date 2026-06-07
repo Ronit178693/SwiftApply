@@ -1,0 +1,23 @@
+# Environments
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local Database fallback
+*local.db
+backend/autointern_local.db
+
+# Environment files
+.env
+backend/.env
+X_Autoposter/
+
+# OS files
+.DS_Store
+Thumbs.db
