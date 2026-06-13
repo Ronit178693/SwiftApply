@@ -2,7 +2,9 @@
 
 const API_BASE = window.location.origin === "file://" || window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
     ? "http://localhost:8000/api" 
-    : window.location.origin + "/api";
+    : (window.location.origin.includes("vercel.app") || window.location.origin.includes("github.io") || window.location.origin.includes("netlify.app")
+        ? "https://your-backend-api-url.onrender.com/api" // UPDATE this with your Render/Railway backend URL if hosting separately
+        : window.location.origin + "/api");
 const DEFAULT_EMAIL = "student.test@example.edu";
 
 // App State
