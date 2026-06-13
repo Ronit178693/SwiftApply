@@ -129,4 +129,7 @@ def deep_health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    # Disable uvicorn reload in production (when PORT env var is present)
+    reload_mode = os.environ.get("PORT") is None
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=reload_mode)
