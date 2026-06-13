@@ -1,11 +1,14 @@
 // AutoIntern JavaScript Controller - Manage state, API calls, and DOM updates
 
 const API_BASE = window.location.origin === "file://" || window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1")
-    ? "http://localhost:8000/api" 
-    : (window.location.origin.includes("vercel.app") || window.location.origin.includes("github.io") || window.location.origin.includes("netlify.app")
-        ? "https://your-backend-api-url.onrender.com/api" // UPDATE this with your Render/Railway backend URL if hosting separately
-        : window.location.origin + "/api");
-const DEFAULT_EMAIL = "student.test@example.edu";
+    ? "http://localhost:8000/api"
+    : window.location.origin + "/api";
+// Generate/retrieve a session-specific test email for isolated multi-user testing
+if (!localStorage.getItem("autointern_test_email")) {
+    const randomId = Math.random().toString(36).substring(2, 11);
+    localStorage.setItem("autointern_test_email", `student.${randomId}@example.edu`);
+}
+const DEFAULT_EMAIL = localStorage.getItem("autointern_test_email");
 
 // App State
 let state = {
@@ -27,7 +30,7 @@ const elements = {
     tabPanes: document.querySelectorAll(".tab-pane"),
     tabTitle: document.getElementById("current-tab-title"),
     tabDesc: document.getElementById("current-tab-desc"),
-    
+
     // Resume Profile elements
     dropzone: document.getElementById("dropzone"),
     fileInput: document.getElementById("file-input"),
@@ -43,7 +46,7 @@ const elements = {
     profileSkills: document.getElementById("profile-skills"),
     profileTimeline: document.getElementById("profile-timeline"),
     resumeVersion: document.getElementById("resume-version"),
-    
+
     // Job Feed elements
     jobSearch: document.getElementById("job-search"),
     portalFilter: document.getElementById("portal-filter"),
@@ -52,7 +55,7 @@ const elements = {
     scrapeStatusBanner: document.getElementById("scrape-status-banner"),
     scrapeStatusText: document.getElementById("scrape-status-text"),
     jobsList: document.getElementById("jobs-list"),
-    
+
     // Modal elements
     modalContainer: document.getElementById("modal-container"),
     modalClose: document.getElementById("modal-close"),
@@ -73,7 +76,7 @@ const elements = {
     analysisMissingSkills: document.getElementById("analysis-missing-skills"),
     analysisRec: document.getElementById("analysis-rec"),
     recommendationBlock: document.getElementById("recommendation-block"),
-    
+
     // Tailor section
     btnRunTailoring: document.getElementById("btn-run-tailoring"),
     tailoringResultsView: document.getElementById("tailoring-results-view"),
@@ -82,7 +85,7 @@ const elements = {
     tailoredLetterText: document.getElementById("tailored-letter-text"),
     btnSaveDraft: document.getElementById("btn-save-draft"),
     btnOpenSendOutreach: document.getElementById("btn-open-send-outreach"),
-    
+
     // Outreach Modal elements
     outreachModalContainer: document.getElementById("outreach-modal-container"),
     outreachModalClose: document.getElementById("outreach-modal-close"),
@@ -103,7 +106,7 @@ const elements = {
     badgeInterview: document.getElementById("badge-interview"),
     webhookEmail: document.getElementById("webhook-email"),
     btnSimulateWebhook: document.getElementById("btn-simulate-webhook"),
-    
+
     // General
     toast: document.getElementById("toast")
 };
@@ -131,7 +134,7 @@ function initNavigation() {
 
 function switchTab(tabName) {
     state.activeTab = tabName;
-    
+
     // Update nav buttons
     elements.navItems.forEach(btn => {
         if (btn.getAttribute("data-tab") === tabName) {
@@ -140,7 +143,7 @@ function switchTab(tabName) {
             btn.classList.remove("active");
         }
     });
-    
+
     // Update panes
     elements.tabPanes.forEach(pane => {
         if (pane.id === `tab-${tabName}`) {
@@ -149,7 +152,7 @@ function switchTab(tabName) {
             pane.classList.remove("active");
         }
     });
-    
+
     // Header Info Update
     if (tabName === "profile") {
         elements.tabTitle.textContent = "Resume Profile";
@@ -168,24 +171,24 @@ function switchTab(tabName) {
 // ── File Upload Manager (Resume) ──
 function initFileUpload() {
     const dropzone = elements.dropzone;
-    
+
     dropzone.addEventListener("click", () => elements.fileInput.click());
-    
+
     elements.fileInput.addEventListener("change", (e) => {
         if (e.target.files.length > 0) {
             handleResumeUpload(e.target.files[0]);
         }
     });
-    
+
     dropzone.addEventListener("dragover", (e) => {
         e.preventDefault();
         dropzone.classList.add("dragover");
     });
-    
+
     dropzone.addEventListener("dragleave", () => {
         dropzone.classList.remove("dragover");
     });
-    
+
     dropzone.addEventListener("drop", (e) => {
         e.preventDefault();
         dropzone.classList.remove("dragover");
@@ -200,47 +203,47 @@ async function handleResumeUpload(file) {
         showToast("Error: Please select a valid PDF file.", true);
         return;
     }
-    
+
     // UI Progress State
     elements.dropzone.classList.add("hidden");
     elements.progressContainer.classList.remove("hidden");
     elements.uploadFilename.textContent = file.name;
     elements.uploadPercent.textContent = "15%";
     elements.uploadProgress.style.width = "15%";
-    
+
     const formData = new FormData();
     formData.append("file", file);
-    
+
     try {
         elements.uploadPercent.textContent = "40%";
         elements.uploadProgress.style.width = "40%";
-        
-        const response = await fetch(`${API_BASE}/resume/upload`, {
+
+        const response = await fetch(`${API_BASE}/resume/upload?email=${DEFAULT_EMAIL}`, {
             method: "POST",
             body: formData
         });
-        
+
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.detail || "Failed to parse PDF resume.");
         }
-        
+
         elements.uploadPercent.textContent = "90%";
         elements.uploadProgress.style.width = "90%";
         elements.uploadStatus.textContent = "Finalizing profile analysis...";
-        
+
         const data = await response.json();
-        
+
         setTimeout(() => {
             elements.progressContainer.classList.add("hidden");
             elements.dropzone.classList.remove("hidden");
-            
+
             if (data.success && data.parsed_resume) {
                 renderProfile(data.parsed_resume, data.version);
                 showToast("Resume parsed and saved successfully!");
             }
         }, 800);
-        
+
     } catch (e) {
         loggerError(e);
         elements.progressContainer.classList.add("hidden");
@@ -252,20 +255,20 @@ async function handleResumeUpload(file) {
 // ── Profile Rendering ──
 function renderProfile(parsedResume, version = null) {
     state.userProfile = parsedResume;
-    
+
     elements.profileEmpty.classList.add("hidden");
     elements.profileDataView.classList.remove("hidden");
-    
+
     if (version) {
         elements.resumeVersion.textContent = `v${version}`;
         elements.resumeVersion.classList.remove("hidden");
     } else {
         elements.resumeVersion.classList.add("hidden");
     }
-    
+
     elements.profileName.textContent = parsedResume.name || "N/A";
     elements.profileEmail.innerHTML = `<i class="fa-regular fa-envelope"></i> ${parsedResume.email || "N/A"}`;
-    
+
     // Skills
     elements.profileSkills.innerHTML = "";
     const skills = parsedResume.skills || [];
@@ -279,22 +282,22 @@ function renderProfile(parsedResume, version = null) {
     } else {
         elements.profileSkills.innerHTML = "<p class='text-muted'>No skills extracted.</p>";
     }
-    
+
     // Timeline (Experience & Projects combined)
     elements.profileTimeline.innerHTML = "";
-    
+
     const experiences = parsedResume.experience || [];
     experiences.forEach(exp => {
         const item = document.createElement("div");
         item.className = "timeline-item";
-        
+
         let bulletsHtml = "";
         if (exp.bullets && exp.bullets.length > 0) {
-            bulletsHtml = `<ul class="timeline-bullets">` + 
-                exp.bullets.map(b => `<li>${b}</li>`).join("") + 
+            bulletsHtml = `<ul class="timeline-bullets">` +
+                exp.bullets.map(b => `<li>${b}</li>`).join("") +
                 `</ul>`;
         }
-        
+
         item.innerHTML = `
             <div class="timeline-header">
                 <span class="timeline-title">${exp.role || "Intern"}</span>
@@ -304,19 +307,19 @@ function renderProfile(parsedResume, version = null) {
         `;
         elements.profileTimeline.appendChild(item);
     });
-    
+
     const projects = parsedResume.projects || [];
     projects.forEach(proj => {
         const item = document.createElement("div");
         item.className = "timeline-item";
-        
+
         let bulletsHtml = "";
         if (proj.bullets && proj.bullets.length > 0) {
-            bulletsHtml = `<ul class="timeline-bullets">` + 
-                proj.bullets.map(b => `<li>${b}</li>`).join("") + 
+            bulletsHtml = `<ul class="timeline-bullets">` +
+                proj.bullets.map(b => `<li>${b}</li>`).join("") +
                 `</ul>`;
         }
-        
+
         item.innerHTML = `
             <div class="timeline-header">
                 <span class="timeline-title">${proj.title || "Project"}</span>
@@ -327,7 +330,7 @@ function renderProfile(parsedResume, version = null) {
         `;
         elements.profileTimeline.appendChild(item);
     });
-    
+
     if (experiences.length === 0 && projects.length === 0) {
         elements.profileTimeline.innerHTML = "<p class='text-muted'>No experiences or projects listed.</p>";
     }
@@ -339,12 +342,12 @@ function initJobFeed() {
         state.filters.search = e.target.value.trim();
         debounce(fetchJobs, 300)();
     });
-    
+
     elements.portalFilter.addEventListener("change", (e) => {
         state.filters.portal = e.target.value;
         fetchJobs();
     });
-    
+
     elements.btnScrape.addEventListener("click", () => {
         triggerScrape();
     });
@@ -358,11 +361,11 @@ async function fetchJobs() {
     if (state.filters.search) {
         url += `&search=${encodeURIComponent(state.filters.search)}`;
     }
-    
+
     try {
         const response = await fetch(url);
         const data = await response.json();
-        
+
         if (data.success) {
             state.jobs = data.jobs || [];
             renderJobs(state.jobs);
@@ -376,7 +379,7 @@ async function fetchJobs() {
 function renderJobs(jobs) {
     elements.jobsList.innerHTML = "";
     elements.resultsCount.textContent = `${jobs.length} internships found`;
-    
+
     if (jobs.length === 0) {
         elements.jobsList.innerHTML = `
             <div class="empty-state">
@@ -387,19 +390,19 @@ function renderJobs(jobs) {
         `;
         return;
     }
-    
+
     jobs.forEach(job => {
         const card = document.createElement("div");
         card.className = "job-card";
-        
+
         // Location text formatting
         let location = job.location || "Remote";
         if (location.length > 25) location = location.substring(0, 22) + "...";
-        
+
         // Stipend text
         let stipend = job.stipend || "Not specified";
         if (stipend.length > 20) stipend = stipend.substring(0, 17) + "...";
-        
+
         card.innerHTML = `
             <div class="job-details">
                 <div class="job-title-row">
@@ -418,7 +421,7 @@ function renderJobs(jobs) {
                 </button>
             </div>
         `;
-        
+
         card.querySelector(".btn-match").addEventListener("click", () => openJobModal(job));
         elements.jobsList.appendChild(card);
     });
@@ -428,21 +431,21 @@ async function triggerScrape() {
     elements.btnScrape.disabled = true;
     elements.btnScrape.classList.add("disabled");
     elements.scrapeStatusBanner.classList.remove("hidden");
-    
+
     try {
         const response = await fetch(`${API_BASE}/jobs/scrape?email=${DEFAULT_EMAIL}`, {
             method: "POST"
         });
-        
+
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.detail || "Scrape run failed.");
         }
-        
+
         const data = await response.json();
         showToast(`Scrape completed! Found ${data.total_scraped || 0} jobs.`);
         fetchJobs();
-        
+
     } catch (e) {
         loggerError(e);
         showToast(e.message || "An error occurred during scraping.", true);
@@ -456,14 +459,14 @@ async function triggerScrape() {
 // ── Modal & Copilot Workspace ──
 function initModal() {
     elements.modalClose.addEventListener("click", closeJobModal);
-    
+
     elements.copilotTabs.forEach(tab => {
         tab.addEventListener("click", () => {
             const subtab = tab.getAttribute("data-subtab");
             switchSubtab(subtab);
         });
     });
-    
+
     elements.modeKeyword.addEventListener("click", () => {
         if (state.scoringMode !== "keyword") {
             state.scoringMode = "keyword";
@@ -472,7 +475,7 @@ function initModal() {
             evaluateMatch();
         }
     });
-    
+
     elements.modeAI.addEventListener("click", () => {
         if (state.scoringMode !== "ai") {
             state.scoringMode = "ai";
@@ -481,19 +484,19 @@ function initModal() {
             evaluateMatch();
         }
     });
-    
+
     elements.btnRunTailoring.addEventListener("click", () => {
         generateTailoring();
     });
-    
+
     elements.btnSaveDraft.addEventListener("click", () => {
         saveApplicationDraft("draft");
     });
-    
+
     elements.btnOpenSendOutreach.addEventListener("click", () => {
         openOutreachModal();
     });
-    
+
     document.querySelectorAll(".btn-copy").forEach(btn => {
         btn.addEventListener("click", () => {
             const targetId = btn.getAttribute("data-target");
@@ -509,11 +512,11 @@ function initModal() {
 function openJobModal(job) {
     state.selectedJob = job;
     state.scoringMode = "keyword";
-    
+
     elements.modeKeyword.classList.add("active");
     elements.modeAI.classList.remove("active");
     switchSubtab("match-analysis");
-    
+
     elements.modalPortal.className = `portal-badge ${job.source_portal}`;
     elements.modalPortal.textContent = job.source_portal;
     elements.modalTitle.textContent = job.title;
@@ -521,11 +524,11 @@ function openJobModal(job) {
     elements.modalLocation.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${job.location || "Remote"}`;
     elements.modalStipend.innerHTML = `<i class="fa-solid fa-money-bill-wave"></i> ${job.stipend || "Not specified"}`;
     elements.modalJDText.textContent = job.jd_text;
-    
+
     elements.btnRunTailoring.classList.remove("hidden");
     elements.tailoringResultsView.classList.add("hidden");
     elements.tailorLoadingState.classList.add("hidden");
-    
+
     elements.modalContainer.classList.remove("hidden");
     evaluateMatch();
 }
@@ -543,7 +546,7 @@ function switchSubtab(subtab) {
             tab.classList.remove("active");
         }
     });
-    
+
     elements.subtabPanes.forEach(pane => {
         if (pane.id === `subtab-${subtab}`) {
             pane.classList.add("active");
@@ -555,32 +558,32 @@ function switchSubtab(subtab) {
 
 async function evaluateMatch() {
     if (!state.selectedJob) return;
-    
+
     const jobId = state.selectedJob.id;
     const useAi = state.scoringMode === "ai";
-    
+
     updateCircularScore(0, "...");
     elements.analysisReason.textContent = "Calculating match score...";
     elements.analysisMatchingSkills.innerHTML = "";
     elements.analysisMissingSkills.innerHTML = "";
-    
+
     try {
         const response = await fetch(`${API_BASE}/jobs/${jobId}/match?email=${DEFAULT_EMAIL}&use_ai=${useAi}`);
-        
+
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.detail || "Failed to retrieve match score.");
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.match) {
             const score = data.match.score;
             const matchDetails = data.match;
-            
+
             updateCircularScore(score);
             elements.analysisReason.textContent = matchDetails.reason || "Relevance complete.";
-            
+
             elements.analysisMatchingSkills.innerHTML = "";
             const matched = matchDetails.matched_skills || [];
             if (matched.length > 0) {
@@ -594,7 +597,7 @@ async function evaluateMatch() {
             } else {
                 elements.analysisMatchingSkills.innerHTML = "<p class='text-muted' style='font-size:0.8rem;'>0 overlapping skills</p>";
             }
-            
+
             elements.analysisMissingSkills.innerHTML = "";
             const missing = matchDetails.missing_skills || [];
             if (missing.length > 0) {
@@ -607,7 +610,7 @@ async function evaluateMatch() {
             } else {
                 elements.analysisMissingSkills.innerHTML = "<p class='text-muted' style='font-size:0.8rem;'>All profile skills relevant</p>";
             }
-            
+
             if (matchDetails.recommendation) {
                 elements.analysisRec.textContent = matchDetails.recommendation;
                 elements.recommendationBlock.classList.remove("hidden");
@@ -615,7 +618,7 @@ async function evaluateMatch() {
                 elements.recommendationBlock.classList.add("hidden");
             }
         }
-        
+
     } catch (e) {
         loggerError(e);
         updateCircularScore(0, "ERR");
@@ -625,11 +628,11 @@ async function evaluateMatch() {
 
 function updateCircularScore(score, overrideText = null) {
     elements.modalScoreVal.textContent = overrideText !== null ? overrideText : score;
-    
+
     const circumference = 213.6;
     const offset = circumference - (score / 100) * circumference;
     elements.modalCircleScore.style.strokeDashoffset = offset;
-    
+
     if (overrideText === "...") {
         elements.modalCircleScore.style.stroke = "var(--text-muted)";
     } else if (score >= 80) {
@@ -643,32 +646,32 @@ function updateCircularScore(score, overrideText = null) {
 
 async function generateTailoring() {
     if (!state.selectedJob) return;
-    
+
     elements.btnRunTailoring.classList.add("hidden");
     elements.tailorLoadingState.classList.remove("hidden");
-    
+
     try {
         const jobId = state.selectedJob.id;
         const response = await fetch(`${API_BASE}/jobs/${jobId}/tailor?email=${DEFAULT_EMAIL}`, {
             method: "POST"
         });
-        
+
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.detail || "Tailoring request failed.");
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             elements.tailoredBulletsText.textContent = typeof data.tailored_resume === 'string' ? data.tailored_resume : JSON.stringify(data.tailored_resume, null, 2);
             elements.tailoredLetterText.textContent = data.cover_letter || "";
-            
+
             elements.tailorLoadingState.classList.add("hidden");
             elements.tailoringResultsView.classList.remove("hidden");
             showToast("Gemini completed resume tailoring successfully!");
         }
-        
+
     } catch (e) {
         loggerError(e);
         elements.btnRunTailoring.classList.remove("hidden");
@@ -680,7 +683,7 @@ async function generateTailoring() {
 // ── Save Draft & Outreach Actions ──
 async function saveApplicationDraft(statusType = "draft") {
     if (!state.selectedJob) return null;
-    
+
     try {
         const response = await fetch(`${API_BASE}/applications`, {
             method: "POST",
@@ -693,12 +696,12 @@ async function saveApplicationDraft(statusType = "draft") {
                 status: statusType
             })
         });
-        
+
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.detail || "Failed to save draft.");
         }
-        
+
         const data = await response.json();
         if (statusType === "draft") {
             showToast("Application draft saved successfully!");
@@ -714,20 +717,20 @@ async function saveApplicationDraft(statusType = "draft") {
 // ── Outreach Sub-Modal Logic ──
 function initOutreachModal() {
     elements.outreachModalClose.addEventListener("click", closeOutreachModal);
-    
+
     elements.btnConfirmSendOutreach.addEventListener("click", async () => {
         const toEmail = elements.outreachEmailInput.value.trim();
         const subject = elements.outreachSubjectInput.value.trim();
-        
+
         if (!toEmail || !toEmail.includes("@")) {
             showToast("Error: Please specify a valid recruiter email address.", true);
             return;
         }
-        
+
         // 1. Save draft details first
         const appId = await saveApplicationDraft("applied");
         if (!appId) return;
-        
+
         // 2. Dispatch
         await sendOutreachEmail(appId, toEmail, subject);
     });
@@ -747,7 +750,7 @@ function closeOutreachModal() {
 async function sendOutreachEmail(appId, toEmail, subject) {
     elements.btnConfirmSendOutreach.disabled = true;
     elements.btnConfirmSendOutreach.textContent = "Sending...";
-    
+
     try {
         const response = await fetch(`${API_BASE}/applications/${appId}/send`, {
             method: "POST",
@@ -757,17 +760,17 @@ async function sendOutreachEmail(appId, toEmail, subject) {
                 subject: subject
             })
         });
-        
+
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.detail || "Dispatched failed.");
         }
-        
+
         showToast("Outreach email sent and tracked successfully!");
         closeOutreachModal();
         closeJobModal();
         switchTab("kanban"); // redirect directly to Kanban tracker
-        
+
     } catch (e) {
         loggerError(e);
         showToast(e.message || "Failed to send email outreach.", true);
@@ -788,7 +791,7 @@ async function fetchApplications() {
     try {
         const response = await fetch(`${API_BASE}/applications?email=${DEFAULT_EMAIL}`);
         const data = await response.json();
-        
+
         if (data.success) {
             state.applications = data.applications || [];
             renderKanban(state.applications);
@@ -807,13 +810,13 @@ function renderKanban(apps) {
         replied: { el: elements.kanbanReplied, badge: elements.badgeReplied, list: [] },
         interview: { el: elements.kanbanInterview, badge: elements.badgeInterview, list: [] }
     };
-    
+
     // Reset columns HTML and lists
     Object.keys(columns).forEach(status => {
         columns[status].el.innerHTML = "";
         columns[status].list = [];
     });
-    
+
     // Group applications by status
     apps.forEach(app => {
         const status = app.status ? app.status.toLowerCase() : "draft";
@@ -826,12 +829,12 @@ function renderKanban(apps) {
             columns.draft.list.push(app);
         }
     });
-    
+
     // Render columns
     Object.keys(columns).forEach(status => {
         const col = columns[status];
         col.badge.textContent = col.list.length;
-        
+
         if (col.list.length === 0) {
             col.el.innerHTML = `
                 <div class="empty-column-state" style="text-align: center; color: var(--text-muted); font-size: 0.75rem; padding: 2rem 0; border: 1px dashed rgba(255,255,255,0.03); border-radius: 8px;">
@@ -840,15 +843,15 @@ function renderKanban(apps) {
             `;
             return;
         }
-        
+
         col.list.forEach(app => {
             const card = document.createElement("div");
             card.className = "kanban-card";
-            
+
             const jobTitle = app.job ? app.job.title : "Tailored Resume Upload";
             const company = app.job ? app.job.company : "Independent Profile";
             const portal = app.job ? app.job.source_portal : "Direct";
-            
+
             card.innerHTML = `
                 <div class="kanban-card-title">${jobTitle}</div>
                 <div class="kanban-card-company">${company}</div>
@@ -857,7 +860,7 @@ function renderKanban(apps) {
                     <span>v${status === "draft" ? "Draft" : status.toUpperCase()}</span>
                 </div>
             `;
-            
+
             // Allow dragging or clicking to advance status
             card.addEventListener("click", () => {
                 openKanbanCardMenu(app);
@@ -871,9 +874,9 @@ function openKanbanCardMenu(app) {
     // Allows student to change card status easily via prompt selector
     const current = app.status;
     const statuses = ["draft", "applied", "seen", "replied", "interview", "offer", "rejected"];
-    const promptMessage = `Move "${app.job ? app.job.title : 'Application'}" status from "${current}" to:\n` + 
-                         statuses.map((s, idx) => `  [${idx}] ${s}`).join("\n");
-                         
+    const promptMessage = `Move "${app.job ? app.job.title : 'Application'}" status from "${current}" to:\n` +
+        statuses.map((s, idx) => `  [${idx}] ${s}`).join("\n");
+
     const selection = prompt(promptMessage, statuses.indexOf(current));
     if (selection !== null && selection.trim() !== "") {
         const val = parseInt(selection);
@@ -893,9 +896,9 @@ async function updateApplicationStatus(appId, newStatus) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: newStatus })
         });
-        
+
         if (!response.ok) throw new Error("Failed to update status.");
-        
+
         showToast(`Moved application status to ${newStatus}!`);
         fetchApplications(); // refresh columns
     } catch (e) {
@@ -910,9 +913,9 @@ async function simulateRecruiterReply() {
         showToast("Error: Please provide a valid recruiter email address to simulate reply.", true);
         return;
     }
-    
+
     elements.btnSimulateWebhook.disabled = true;
-    
+
     try {
         const response = await fetch(`${API_BASE}/applications/inbound-webhook`, {
             method: "POST",
@@ -923,9 +926,9 @@ async function simulateRecruiterReply() {
                 body: "Hi! Thanks for reaching out. We would love to schedule an interview."
             })
         });
-        
+
         if (!response.ok) throw new Error("Webhook simulator failed.");
-        
+
         const data = await response.json();
         if (data.success) {
             showToast("Recruiter reply successfully simulated! Kanban board updated.");
@@ -981,7 +984,7 @@ function showToast(message, isError = false) {
         elements.toast.style.boxShadow = "0 4px 20px rgba(99,102,241,0.3)";
     }
     elements.toast.classList.remove("hidden");
-    
+
     setTimeout(() => {
         elements.toast.classList.add("hidden");
     }, 3000);

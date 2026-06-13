@@ -81,23 +81,25 @@ app.include_router(applications_router, prefix="/api")
 
 
 
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 # Calculate paths relative to backend/app/main.py
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "frontend")
+INDEX_PATH = os.path.join(FRONTEND_DIR, "index.html")
 
-if os.path.exists(FRONTEND_DIR):
-    # Mount frontend directory at the root to serve index.html, style.css, app.js relatively.
-    # Note: This MUST be mounted last so it doesn't intercept API routes.
-    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
-else:
-    @app.get("/")
-    def read_root():
-        return {
-            "message": "Welcome to AutoIntern API gateway! Frontend folder not found.",
-            "docs_url": "/docs",
-            "status": "healthy"
-        }
+# Mount static assets directory
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+@app.get("/")
+def read_root():
+    if os.path.exists(INDEX_PATH):
+        return FileResponse(INDEX_PATH)
+    return {
+        "message": "Welcome to AutoIntern API gateway! Frontend index.html not found.",
+        "docs_url": "/docs",
+        "status": "healthy"
+    }
 
 
 
@@ -127,7 +129,4 @@ def deep_health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    # Disable uvicorn reload in production (when PORT env var is present)
-    reload_mode = os.environ.get("PORT") is None
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=reload_mode)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

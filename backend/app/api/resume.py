@@ -9,15 +9,14 @@ import logging
 router = APIRouter(prefix="/resume", tags=["resume"])
 logger = logging.getLogger(__name__)
 
-def get_or_create_test_user(db: Session) -> User:
+def get_or_create_test_user(db: Session, email: str = "student.test@example.edu") -> User:
     """Helper to ensure a test student user exists in the DB so parsing runs smoothly."""
-    test_email = "student.test@example.edu"
     try:
-        user = db.query(User).filter(User.email == test_email).first()
+        user = db.query(User).filter(User.email == email).first()
         if not user:
-            logger.info("Test user not found. Bootstrapping a default test user...")
+            logger.info(f"Test user '{email}' not found. Bootstrapping a default test user...")
             user = User(
-                email=test_email,
+                email=email,
                 name="Test Student",
                 college_id="TEST-101",
                 plan="free"
@@ -36,6 +35,7 @@ def get_or_create_test_user(db: Session) -> User:
 
 @router.post("/upload")
 async def upload_and_parse_resume(
+    email: str = Query("student.test@example.edu", description="Student email to link this resume"),
     file: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
@@ -73,8 +73,8 @@ async def upload_and_parse_resume(
         logger.info("Parsing raw text into structured JSON schema...")
         parsed_json = ai_service.extract_structured_resume(raw_text)
         
-        # 5. Fetch or bootstrap our default database student user
-        user = get_or_create_test_user(db)
+        # 5. Fetch or bootstrap our database student user
+        user = get_or_create_test_user(db, email)
         
         # 6. Determine the next version number for this user's resumes
         latest_version = (

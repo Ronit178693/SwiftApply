@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,11 +8,14 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body class="dark-mode">
     <div class="app-container">
         <!-- Sidebar Navigation -->
@@ -20,7 +24,7 @@
                 <i class="fa-solid fa-graduation-cap logo-icon"></i>
                 <span class="logo-text">Auto<span>Intern</span></span>
             </div>
-            
+
             <nav class="nav-menu">
                 <button class="nav-item active" data-tab="profile">
                     <i class="fa-regular fa-user"></i>
@@ -35,7 +39,7 @@
                     <span>Kanban Board</span>
                 </button>
             </nav>
-            
+
             <div class="sidebar-footer">
                 <div class="user-badge">
                     <div class="user-avatar">TS</div>
@@ -53,7 +57,8 @@
             <header class="top-bar">
                 <div class="page-title">
                     <h1 id="current-tab-title">Resume Profile</h1>
-                    <p id="current-tab-desc">Upload your resume to extract details and generate optimized job search queries.</p>
+                    <p id="current-tab-desc">Upload your resume to extract details and generate optimized job search
+                        queries.</p>
                 </div>
                 <div class="system-status">
                     <span class="status-indicator online"></span>
@@ -75,7 +80,8 @@
                                 <input type="file" id="file-input" accept=".pdf" class="hidden-input">
                                 <div class="dropzone-content">
                                     <i class="fa-regular fa-file-pdf pdf-icon"></i>
-                                    <p class="dropzone-text">Drag and drop your PDF resume here, or <span class="highlight">browse files</span></p>
+                                    <p class="dropzone-text">Drag and drop your PDF resume here, or <span
+                                            class="highlight">browse files</span></p>
                                     <span class="file-limits">Supports PDF up to 10MB</span>
                                 </div>
                             </div>
@@ -87,7 +93,8 @@
                                 <div class="progress-bar-bg">
                                     <div class="progress-bar" id="upload-progress"></div>
                                 </div>
-                                <p class="progress-status" id="upload-status">Uploading & extracting skills via Gemini...</p>
+                                <p class="progress-status" id="upload-status">Uploading & extracting skills via
+                                    Gemini...</p>
                             </div>
                         </div>
                     </div>
@@ -106,7 +113,8 @@
                             <div class="empty-state" id="profile-empty">
                                 <i class="fa-regular fa-folder-open empty-icon"></i>
                                 <h3>No Resume Uploaded Yet</h3>
-                                <p>Upload your PDF resume on the left to see the structured JSON analysis and skills extraction.</p>
+                                <p>Upload your PDF resume on the left to see the structured JSON analysis and skills
+                                    extraction.</p>
                             </div>
 
                             <!-- Profile Data View -->
@@ -114,7 +122,8 @@
                                 <div class="profile-section">
                                     <div class="profile-info-header">
                                         <h3 id="profile-name">John Doe</h3>
-                                        <p id="profile-email"><i class="fa-regular fa-envelope"></i> email@example.com</p>
+                                        <p id="profile-email"><i class="fa-regular fa-envelope"></i> email@example.com
+                                        </p>
                                     </div>
                                 </div>
 
@@ -144,9 +153,10 @@
                     <div class="filters-grid">
                         <div class="search-input-wrapper">
                             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                            <input type="text" id="job-search" placeholder="Search job titles, companies, or keywords...">
+                            <input type="text" id="job-search"
+                                placeholder="Search job titles, companies, or keywords...">
                         </div>
-                        
+
                         <div class="select-wrapper">
                             <i class="fa-solid fa-filter select-icon"></i>
                             <select id="portal-filter">
@@ -157,7 +167,7 @@
                                 <option value="wellfound">Wellfound</option>
                             </select>
                         </div>
-                        
+
                         <button class="btn btn-primary btn-glow" id="btn-scrape">
                             <i class="fa-solid fa-arrows-rotate"></i>
                             <span>Scrape Internships</span>
@@ -171,7 +181,8 @@
                         <span class="results-count" id="results-count">0 internships found</span>
                         <div class="scrape-status-banner hidden" id="scrape-status-banner">
                             <span class="spinner-small"></span>
-                            <span class="scrape-status-text" id="scrape-status-text">Generating queries and scraping...</span>
+                            <span class="scrape-status-text" id="scrape-status-text">Generating queries and
+                                scraping...</span>
                         </div>
                     </div>
 
@@ -191,14 +202,19 @@
             <section id="tab-kanban" class="tab-pane">
                 <!-- Simulation Helper Card -->
                 <div class="filters-card glass" style="margin-bottom: 2rem;">
-                    <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+                    <div
+                        style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
                         <div>
-                            <h3 style="font-size: 1rem; font-weight: 700; color: var(--primary-light);"><i class="fa-solid fa-reply-all"></i> Recruiter Reply Webhook Simulator</h3>
-                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">Simulate a recruiter reply to advance cards to "Replied".</p>
+                            <h3 style="font-size: 1rem; font-weight: 700; color: var(--primary-light);"><i
+                                    class="fa-solid fa-reply-all"></i> Recruiter Reply Webhook Simulator</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">Simulate a
+                                recruiter reply to advance cards to "Replied".</p>
                         </div>
                         <div style="display: flex; gap: 0.75rem; align-items: center;">
-                            <input type="email" id="webhook-email" placeholder="recruiter@example.com" style="padding: 0.6rem 1rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); border-radius: 8px; font-family: inherit; font-size: 0.85rem; color: var(--text-primary); min-width: 200px;">
-                            <button class="btn btn-primary" id="btn-simulate-webhook" style="padding: 0.6rem 1.2rem; font-size: 0.85rem;">
+                            <input type="email" id="webhook-email" placeholder="recruiter@example.com"
+                                style="padding: 0.6rem 1rem; background: rgba(0,0,0,0.2); border: 1px solid var(--card-border); border-radius: 8px; font-family: inherit; font-size: 0.85rem; color: var(--text-primary); min-width: 200px;">
+                            <button class="btn btn-primary" id="btn-simulate-webhook"
+                                style="padding: 0.6rem 1.2rem; font-size: 0.85rem;">
                                 <i class="fa-solid fa-reply"></i> Simulate Reply
                             </button>
                         </div>
@@ -242,7 +258,7 @@
                         </div>
                         <div class="kanban-cards-container" id="kanban-replied"></div>
                     </div>
-                    
+
                     <!-- Column 5: Interview -->
                     <div class="kanban-column" data-status="interview">
                         <div class="kanban-column-header">
@@ -260,7 +276,7 @@
     <div class="modal-overlay hidden" id="modal-container">
         <div class="modal glass">
             <button class="modal-close" id="modal-close"><i class="fa-solid fa-xmark"></i></button>
-            
+
             <div class="modal-header">
                 <div class="job-meta">
                     <span class="portal-badge" id="modal-portal">LinkedIn</span>
@@ -271,7 +287,7 @@
                         <span id="modal-stipend"><i class="fa-solid fa-money-bill-wave"></i> unpaid</span>
                     </div>
                 </div>
-                
+
                 <!-- Match Score Indicator -->
                 <div class="match-indicator">
                     <div class="radial-progress" id="modal-radial-progress" data-score="0">
@@ -286,7 +302,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="modal-grid">
                 <!-- Left Pane: JD -->
                 <div class="modal-pane-left">
@@ -295,7 +311,7 @@
                         Loading description...
                     </div>
                 </div>
-                
+
                 <!-- Right Pane: Copilot & Tailoring -->
                 <div class="modal-pane-right">
                     <!-- Tabs -->
@@ -307,7 +323,7 @@
                             <i class="fa-solid fa-wand-magic-sparkles"></i> Tailor Resume
                         </button>
                     </div>
-                    
+
                     <!-- Subtab Content 1: Match Analysis -->
                     <div class="subtab-pane active" id="subtab-match-analysis">
                         <div class="score-mode-selector">
@@ -327,13 +343,15 @@
 
                         <div class="analysis-skills-block">
                             <div class="skills-block">
-                                <h5 class="matching-skills-title"><i class="fa-solid fa-circle-check"></i> Matching Skills</h5>
+                                <h5 class="matching-skills-title"><i class="fa-solid fa-circle-check"></i> Matching
+                                    Skills</h5>
                                 <div class="skills-grid" id="analysis-matching-skills">
                                     <!-- Matching skills chips -->
                                 </div>
                             </div>
                             <div class="skills-block">
-                                <h5 class="missing-skills-title"><i class="fa-solid fa-circle-xmark"></i> Non-Relevant / Missing</h5>
+                                <h5 class="missing-skills-title"><i class="fa-solid fa-circle-xmark"></i> Non-Relevant /
+                                    Missing</h5>
                                 <div class="skills-grid" id="analysis-missing-skills">
                                     <!-- Missing skills chips -->
                                 </div>
@@ -342,10 +360,11 @@
 
                         <div class="analysis-section" id="recommendation-block">
                             <h4>Recommendation</h4>
-                            <p class="rec-text" id="analysis-rec">Optimize your resume using the Tailor tab to maximize fit.</p>
+                            <p class="rec-text" id="analysis-rec">Optimize your resume using the Tailor tab to maximize
+                                fit.</p>
                         </div>
                     </div>
-                    
+
                     <!-- Subtab Content 2: Tailored Resume and Letter -->
                     <div class="subtab-pane" id="subtab-tailored-bullets">
                         <div class="tailoring-actions">
@@ -353,22 +372,24 @@
                                 <i class="fa-solid fa-wand-magic-sparkles"></i> Generate AI Tailoring
                             </button>
                         </div>
-                        
+
                         <div class="tailoring-results hidden" id="tailoring-results-view">
                             <div class="results-card">
                                 <div class="results-card-header">
                                     <h4>Tailored Experience Bullets</h4>
-                                    <button class="btn-copy" data-target="tailored-bullets-text"><i class="fa-regular fa-copy"></i> Copy</button>
+                                    <button class="btn-copy" data-target="tailored-bullets-text"><i
+                                            class="fa-regular fa-copy"></i> Copy</button>
                                 </div>
                                 <div class="code-box">
                                     <pre id="tailored-bullets-text">Generating optimized points...</pre>
                                 </div>
                             </div>
-                            
+
                             <div class="results-card">
                                 <div class="results-card-header">
                                     <h4>Outreach Cover Letter</h4>
-                                    <button class="btn-copy" data-target="tailored-letter-text"><i class="fa-regular fa-copy"></i> Copy</button>
+                                    <button class="btn-copy" data-target="tailored-letter-text"><i
+                                            class="fa-regular fa-copy"></i> Copy</button>
                                 </div>
                                 <div class="code-box">
                                     <pre id="tailored-letter-text">Generating cover letter...</pre>
@@ -377,7 +398,8 @@
 
                             <!-- Save Draft & Outreach Actions -->
                             <div class="results-action-row" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                                <button class="btn btn-secondary btn-full" id="btn-save-draft" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border); color: var(--text-primary);">
+                                <button class="btn btn-secondary btn-full" id="btn-save-draft"
+                                    style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border); color: var(--text-primary);">
                                     <i class="fa-regular fa-bookmark"></i> Save Draft
                                 </button>
                                 <button class="btn btn-primary btn-full" id="btn-open-send-outreach">
@@ -385,12 +407,14 @@
                                 </button>
                             </div>
 
-                            <p class="tailor-disclaimer"><i class="fa-solid fa-circle-info"></i> Saving or sending creates a card in your Kanban Board.</p>
+                            <p class="tailor-disclaimer"><i class="fa-solid fa-circle-info"></i> Saving or sending
+                                creates a card in your Kanban Board.</p>
                         </div>
 
                         <div class="tailor-loading hidden" id="tailor-loading-state">
                             <span class="spinner"></span>
-                            <p>Gemini is tailoring experience bullets and writing a cover letter. This may take 5-15 seconds...</p>
+                            <p>Gemini is tailoring experience bullets and writing a cover letter. This may take 5-15
+                                seconds...</p>
                         </div>
                     </div>
                 </div>
@@ -402,20 +426,27 @@
     <div class="modal-overlay hidden" id="outreach-modal-container" style="z-index: 1100;">
         <div class="modal glass" style="max-width: 500px; height: auto; min-height: 320px; padding: 2rem;">
             <button class="modal-close" id="outreach-modal-close"><i class="fa-solid fa-xmark"></i></button>
-            <h2 style="font-size: 1.4rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><i class="fa-solid fa-paper-plane" style="color: var(--primary-light);"></i> Email Outreach</h2>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Send your tailored cover letter and PDF resume directly to the recruiter.</p>
-            
+            <h2 style="font-size: 1.4rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;"><i
+                    class="fa-solid fa-paper-plane" style="color: var(--primary-light);"></i> Email Outreach</h2>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Send your tailored cover
+                letter and PDF resume directly to the recruiter.</p>
+
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Recruiter Email Address</label>
-                    <input type="email" id="outreach-email-input" placeholder="hr@company.com" style="width: 100%; padding: 0.7rem 1rem; background: rgba(0,0,0,0.25); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 0.9rem;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Recruiter Email
+                        Address</label>
+                    <input type="email" id="outreach-email-input" placeholder="hr@company.com"
+                        style="width: 100%; padding: 0.7rem 1rem; background: rgba(0,0,0,0.25); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 0.9rem;">
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 0.35rem;">
-                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Email Subject</label>
-                    <input type="text" id="outreach-subject-input" value="Software Engineering Internship Application" style="width: 100%; padding: 0.7rem 1rem; background: rgba(0,0,0,0.25); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 0.9rem;">
+                    <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-secondary);">Email
+                        Subject</label>
+                    <input type="text" id="outreach-subject-input" value="Software Engineering Internship Application"
+                        style="width: 100%; padding: 0.7rem 1rem; background: rgba(0,0,0,0.25); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-primary); font-family: inherit; font-size: 0.9rem;">
                 </div>
-                
-                <button class="btn btn-primary btn-full btn-glow" id="btn-confirm-send-outreach" style="margin-top: 1rem; padding: 0.85rem;">
+
+                <button class="btn btn-primary btn-full btn-glow" id="btn-confirm-send-outreach"
+                    style="margin-top: 1rem; padding: 0.85rem;">
                     <i class="fa-solid fa-paper-plane"></i> Dispatch Email
                 </button>
             </div>
@@ -425,7 +456,7 @@
     <!-- Toast Notification -->
     <div id="toast" class="toast hidden">Copied to clipboard!</div>
 
-    <script src="./app.js"></script>
+    <script src="/static/app.js"></script>
 </body>
-</html>
 
+</html>
